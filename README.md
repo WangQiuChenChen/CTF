@@ -1,4 +1,4 @@
-# CTP Writeup
+# CTP Blog
 
 
 ## 2月17日 更新
