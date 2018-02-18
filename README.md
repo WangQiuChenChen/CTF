@@ -1,6 +1,107 @@
 # CTP Blog
 
 
+## 2月18日 更新
+
+### Misc Email
+
+追踪IAMP数据包，可以看到发送了一个名为`20161008103416509320.7z`的邮件附件，文件以Base64格式编码：
+
+```
+N3q8ryccAAQ9AshlwFQFAAAAAAAqAAAAAAAAAOjuWeI83mZQMTuDbrw/ESKoLQCVZl4iDZ8FFWPWaFcXMf...
+```
+
+将其解码到文件，打开时提示文件已加密。
+
+除了发送7z附件，还发送了其他的信息
+
+找到一段字符
+```
+Fl5266q4PzYXSPdmgzrA
+```
+
+尝试将其作为压缩包的密码，可以打开压缩包，里面有`20161008103416509320.pdf`文件，打开后未发现所需要的flag
+
+题目暂未解出
+
+
+### HTML协议定义的8种方法
+
+HTTP/1.1协议中共定义了八种方法（有时也叫“动作”）来表明Request-URI指定的资源的不同操作方式：
+
+OPTIONS 
+返回服务器针对特定资源所支持的HTTP请求方法。也可以利用向Web服务器发送'*'的请求来测试服务器的功能性。 
+
+HEAD 
+向服务器索要与GET请求相一致的响应，只不过响应体将不会被返回。这一方法可以在不必传输整个响应内容的情况下，就可以获取包含在响应消息头中的元信息。 
+
+GET 
+向特定的资源发出请求。注意：GET方法不应当被用于产生“副作用”的操作中。 
+
+POST 
+向指定资源提交数据进行处理请求（例如提交表单或者上传文件）。数据被包含在请求体中。POST请求可能会导致新的资源的建立和/或已有资源的修改。 
+
+PUT 
+向指定资源位置上传其最新内容。 
+
+DELETE 
+请求服务器删除Request-URI所标识的资源。 
+
+TRACE 
+回显服务器收到的请求，主要用于测试或诊断。 
+
+CONNECT 
+HTTP/1.1协议中预留给能够将连接改为管道方式的代理服务器。
+
+### Python Request Part 1
+
+以下内容部分摘自[CSDN博客：Python-第三方库requests详解](http://blog.csdn.net/shanzhizi/article/details/50903748)
+
+```python
+import python
+
+r = requests.get(url='http://www.itwhy.org')    # 最基本的GET请求
+print(r.status_code)    # 获取返回状态
+r = requests.get(url='http://dict.baidu.com/s', params={'wd':'python'})   #带参数的GET请求
+print(r.url)
+print(r.text)   #打印解码后的返回数据
+```
+
+其他方法是统一的接口样式
+```python
+requests.get(‘https://github.com/timeline.json’) #GET请求
+requests.post(“http://httpbin.org/post”) #POST请求
+requests.put(“http://httpbin.org/put”) #PUT请求
+requests.delete(“http://httpbin.org/delete”) #DELETE请求
+requests.head(“http://httpbin.org/get”) #HEAD请求
+requests.options(“http://httpbin.org/get”) #OPTIONS请求
+```
+
+带参数的请求实例：
+```python
+import requests
+
+requests.get('http://www.dict.baidu.com/s', params={'wd': 'python'})    #GET参数实例
+requests.post('http://www.itwhy.org/wp-comments-post.php', data={'comment': '测试POST'})    #POST参数实例
+```
+
+POST发送JSON数据：
+```python
+import requests
+import json
+ 
+r = requests.post('https://api.github.com/some/endpoint', data=json.dumps({'some': 'data'}))
+print(r.json())
+```
+
+### 其他
+
+对lsb.py进行修改，使其成为命令行工具
+```shell
+py lsb.py <input file> <output file>
+```
+
+
 ## 2月17日 更新
 
 ### Misc LSB
