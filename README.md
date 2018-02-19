@@ -1,6 +1,168 @@
 # CTP Blog
 
 
+## 2月19日 更新
+
+### 将Kali Linux安装到Bash on Windows记录
+
+后面的题目只在Windows环境下不可完成，将Win10上的Linux子系统启动，并装上Kali Linux
+
+参考内容[WSL-Distribution-Switcher](https://github.com/RoliSoft/WSL-Distribution-Switcher)
+
+1.启用Linux子系统功能
+
+2.下载WSL-Distribution-Switcher
+
+```shell
+git clone git@github.com:RoliSoft/WSL-Distribution-Switcher.git
+```
+
+3.获取镜像文件
+
+```shell
+python get-prebuilt.py kalilinux/kali-linux-docker
+```
+
+4.安装
+
+```shell
+py install.py rootfs_kalilinux_kali-linux-docker_latest.tar.gz
+```
+
+5.配置
+```shell
+lxrun /setdefaultuser xxx
+bash
+export LANG=C && cd
+```
+
+6.系统更新
+
+```shell
+sudo apt update && sudo apt upgrade
+```
+
+### Python Requests Part 2
+
+根据题目Web Calculator中提供的Requests官方文档，学习了如下内容，并以Web Calculator题目做练习
+
+（摘自[Request 2.18.1文档](http://cn.python-requests.org/zh_CN/latest/)）
+
+#### 1.发送请求
+```python
+import requests
+
+r = requests.get(url)   
+r = requests.post(url)
+r = requests.put(url)
+r = requests.delete(url)
+r = requests.head(url)
+r = requests.options(url)
+```
+
+```python
+r = requests.get(url='http://121.42.176.204:23331/calculator/')
+print(r.text)
+```
+
+输出网页HTML代码
+```html
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Calculator</title>
+        <style type="text/css">
+                .line_input{
+                        border-width: 1px;
+                        border-bottom: solid;
+                        border-top: none;
+                        border-left: none;
+                        border-right: none;
+                        border-width: 1px;
+                        text-align: center;
+                        outline: none;
+                        margin: 0 1em;
+                }
+        </style>
+    </head>
+    <body>
+        <center>
+            <h1>Yet Another Calculator</h1>
+            <p>Let's play a game. Please work on this math problem, and make it in 1.5 seconds.</p>
+            <form action="" method="GET"><span id="exp">5160526 + 811146 * 44008 - 158998 = </span>
+            <input name="answer" type="text" autofocus class="line_input" /><input type="submit" /></form>
+        </center>
+    </body>
+</html>
+```
+
+可以得到要计算的式子为：`5160526 + 811146 * 44008 - 158998`，计算结果为`35701914696`
+
+要在一个文本输入框中输入答案
+
+#### 2.传递URL参数
+
+手工构建的URL，例如，xxx.org/get?key=val，Requests 允许你使用 params 关键字参数，以一个字符串字典来提供这些参数。
+
+```python
+payload = {'key1': 'value1', 'key2': 'value2'}
+r = requests.get("http://xxx.org/get", params=payload)
+print(r.url)
+```
+
+```
+http://httpbin.org/get?key2=value2&key1=value1
+```
+
+你还可以将一个列表作为值传入：
+```python
+payload = {'key1': 'value1', 'key2': ['value2', 'value3']}
+
+r = requests.get('http://httpbin.org/get', params=payload)
+print(r.url)
+```
+
+```
+http://httpbin.org/get?key1=value1&key2=value2&key2=value3
+```
+
+尝试使用`answer=35701914696`作为payload向题目中传递参数
+
+```python
+payload = {'answer': '35701914696'}
+r = requests.get('http://121.42.176.204:23331/calculator/', params=payload)
+print(r.url)
+print(r.text)
+```
+
+输出内容包含
+```
+Expression has not been generated.
+```
+
+此法无效
+
+尝试使用POST请求
+```python
+payload = {'answer': '35701914696'}
+r = requests.post('http://121.42.176.204:23331/calculator/', data=payload)
+print(r.text)
+```
+
+输出内容为新的HTML文件源码，新的表达式变为：`7553124 + 675371 * 42361 - 198070 = `，计算结果为：`28616745985`
+
+尝试使用相同的方法发送POST请求，得到新的表达式：`9015527 + 957316 * 79168 - 101603 =`，计算结果为：`75797707012`
+
+再次使用相同的方法发送POST请求，依然得到新的表达式。也许此方法会如此循环下去，不能得到flag
+
+在不计算表达式的情况下点击了以下按钮，网页跳转为
+```url
+http://121.42.176.204:23331/calculator/?answer=
+```
+
+上面使用POST请求的方法使用的URL没有后面的参数。这种方法有误。
+
+
 ## 2月18日 更新
 
 ### Misc Email
@@ -30,27 +192,35 @@ Fl5266q4PzYXSPdmgzrA
 HTTP/1.1协议中共定义了八种方法（有时也叫“动作”）来表明Request-URI指定的资源的不同操作方式：
 
 OPTIONS 
+
 返回服务器针对特定资源所支持的HTTP请求方法。也可以利用向Web服务器发送'*'的请求来测试服务器的功能性。 
 
 HEAD 
+
 向服务器索要与GET请求相一致的响应，只不过响应体将不会被返回。这一方法可以在不必传输整个响应内容的情况下，就可以获取包含在响应消息头中的元信息。 
 
 GET 
+
 向特定的资源发出请求。注意：GET方法不应当被用于产生“副作用”的操作中。 
 
 POST 
+
 向指定资源提交数据进行处理请求（例如提交表单或者上传文件）。数据被包含在请求体中。POST请求可能会导致新的资源的建立和/或已有资源的修改。 
 
 PUT 
+
 向指定资源位置上传其最新内容。 
 
 DELETE 
+
 请求服务器删除Request-URI所标识的资源。 
 
 TRACE 
+
 回显服务器收到的请求，主要用于测试或诊断。 
 
 CONNECT 
+
 HTTP/1.1协议中预留给能够将连接改为管道方式的代理服务器。
 
 ### Python Request Part 1
