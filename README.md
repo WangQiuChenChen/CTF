@@ -1,5 +1,249 @@
 # CTF Blog
 
+## 2月22日 更新
+
+### Python Requests Part 5 (约1小时)
+
+#### 重定向与请求历史
+
+默认情况下，除了HEAD请求，Requests会自动处理所有重定向。可以使用相应对象的history方法来追踪重定向
+
+```python
+r = requests.get('http://github.com/')
+print(r.url)    # 'https://github.com/'
+print(r.status_code)    # 200
+print(r.history)        # [<Response [301]>]
+```
+
+可以看到，发生了重定向
+
+使用的是GET、OPTIONS、POST、PUT、PATCH 或者 DELETE可以通过allow_redirects参数禁用重定向处理
+
+```python
+r = requests.get('http://github.com', allow_redirects=False)
+print(r.status_code)    # 301
+print(r.history)        # []
+```
+
+可以看到，此时重定向被禁用
+
+使用了 HEAD，你也可以启用重定向
+
+```python
+r = requests.head('http://github.com/')
+print(r.url)    # 'https://github.com/'
+print(r.history)        # [<Response [301]>]
+```
+
+#### HTTP 常用状态码
+
+HTTP状态码用来表示网页服务器HTTP响应状态。遇到的最多的就是404 NOT FOUND。
+
+1XX：信息，临时响应
+
+2XX：成功，表示请求已经被服务器接收、理解并接受
+
+3XX：重定向，代表客户端需要采取进一步的操作才能完成请求
+
+4XX：客户端错误
+
+5XX：服务器错误
+
+#### 超时
+
+可以告诉 requests 在经过以 timeout 参数设定的秒数时间之后停止等待响应。基本上所有的生产代码都应该使用这一参数。如果不使用，你的程序可能会永远失去响应：
+```python
+>>> requests.get('http://github.com', timeout=0.001)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+requests.exceptions.Timeout: HTTPConnectionPool(host='github.com', port=80): Request timed out. (timeout=0.001)
+```
+timeout 仅对连接过程有效，与响应体的下载无关。 timeout 并不是整个下载响应的时间限制，而是如果服务器在 timeout 秒内没有应答，将会引发一个异常（更精确地说，是在 timeout 秒内没有从基础套接字上接收到任何字节的数据时）
+
+
+### 机试试题 Part 1 (约3小时)
+
+#### 素数
+
+题目要求：统计素数的个数，求出2到m之间（含m，m<=1000）所有素数并放在数组a中。
+
+输入：正整数m，要求支持命令行输入参数
+
+输出：从小到大的所有素数及个数（素数输出的时候用%4d来控制）
+
+（如：your-program 10，则输出：2 3 5 7	4）
+
+分析：
+
+1.题目输入格式类似于常用的Shell命令，如：
+```shell
+apt upgrade -y
+```
+
+可以使用argc和argv实现
+```c
+int main(int argc, char **argv) {
+    // ...
+    return 0;
+}
+```
+
+argc为参数个数，argv[]为参数内容。其中argv[0]为可执行程序的路径，argv[1]到argv[argc - 1]为每一个参数
+
+2.字符串与数字之间的转换
+
+题目输入的信息为字符串，程序中需要将其转换为int类型的数字
+
+```c
+#include <string.h>
+
+int i, m = 0;
+for (i = 0; i < strlen(argv[1]); i++) {
+    m *= 10;
+    m += argv[1][i] - '0';
+}
+```
+
+3.获取2到m之间的所有素数
+
+可以定义一个长度为1010的bool型数组，数组中元素为true表示该下标为合数，false为素数
+
+然后从头扫描，遇到一个为false的元素，将数组中下标为该元素下标的整数倍设为false
+
+这样可以将所有合数全部排除
+
+#### 数组最小元素
+
+题目要求：编写一个函数void fun(int *s, int t, int *result),用来求出数组的最小元素在数组中的下标，并存放在result所指的存储单元中。
+
+例如，输入如下整数：
+
+564，165，567，121，948，324，329，454，5345，783，434，124，561，985，118
+
+则输出结果为：14，118
+
+题目给出了函数的定义
+```c
+void fun (int *s, int t, int *result);
+```
+
+此题考查数组、指针的操作和参数传递
+
+1.数组的表示
+
+一维数组的表示形式
+```c
+int a[];
+int *a;
+```
+
+题目中的`int *s`表示要操作的数组，`int t`表示数组的长度
+
+2.指针的操作
+
+简单来说，指针就是地址，通过指针可以找到变量
+
+```c
+int *p; // 指针定义
+int a;
+p = &a; // p中存放a的地址
+*p = 1; // a = 1
+```
+
+3.函数参数传递
+
+参数传递总的来说有两种形式：传值、传地址。如果需要修改实参的内容，需要传地址，如果只是借用实参的值，传值即可。
+
+传地址又有两种形式：传指针、传引用。指针和引用都是存放的变量的地址，二者的区别：
+```c++
+void swap(int *a, int *b) {
+    int t = *a;
+    *a = *b;
+    *b = t;
+}
+
+void swap(int &a, int &b) {
+    int t = a;
+    a = b;
+    b = t;
+}
+```
+
+4.C++ STL 获得数组最小元素
+```c++
+#include <algorithm>
+#include <iostream>
+using namespace std;
+
+int main() {
+    int a[] = {1, 2, 3}; 
+    int *m = min_element(a, a + 3);
+    cout << *m << endl;
+    return 0;
+}
+```
+
+#### Class IPv4
+
+题目要求：写一个IPv4的地址如“202.112.17.33”，“192.168.1.1”等，设计一个IPv4地址分析类，功能包括
+
+1)构造函数：参数包含IPv4地址字符串
+
+2)判断是否是合法主机IP地址的接口
+
+3)判断IP地址是A类、B类、C类或者其他的接口
+
+1.类的构造函数
+
+构造函数的函数名与类名相同，没有返回值，可以没有形参，可以重载。
+
+```c++
+class IPv4 {
+    public:
+        IPv4(string ip);
+        IPv4(const IPv4 &ip);   // 拷贝构造函数
+}
+```
+
+2.字符串分割
+
+这个题目对字符串的分割要求相对简单，针对关键字符`.`进行分割即可。使用到STL String中的`find()`和`substr()`函数
+
+find函数用来找到第一个关键字符在字符串中的位置，substr函数用来获得字符串的子串，二者配合使用可以分割IP地址的每一部分
+
+3.IPv4的分类
+
+A：0.0.0.0~127.255.255.255
+
+B：128.0.0.0~191.255.255.255
+
+C：192.0.0.0~223.255.255.255
+
+D：224.0.0.0~239.255.255.255
+
+E：240.0.0.0~247.255.255.255
+
+#### Class FTP
+
+题目要求：访问一个FTP服务器的完整链接字符串为
+
+ftp://test:12345@192.168.1.1:2121
+
+设计一个字符串分析类，功能包括
+
+1）构造函数：参数包含ftp链接字符串
+
+2）获取ftp服务器IP的接口
+
+3）获取登陆ftp服务器的用户名及密码的接口
+
+4）获取ftp服务器的服务端口
+
+编写主程序测试类的有效性
+
+这个题目相比Class IPv4难度大一些，对字符串的分割不只是依靠单一的关键字符，但原理相通，使用`find()`和`substr()`函数即可达到题目要求
+
+
 ## 2月21日 更新
 
 ### Python Requests Part 4
@@ -165,9 +409,9 @@ range = 10
 
 堆定义（数组存放）
 
-小顶堆：k[i] <= k[2 * i], k[i] <= k[2 * i + 1]
+小顶堆：k[i] <= k[2i], k[i] <= k[2i + 1]
 
-大顶堆：k[i] >= k[2 * i], k[i] >= k[2 * i + 1]
+大顶堆：k[i] >= k[2i], k[i] >= k[2i + 1]
 
 特点：输出堆顶最大（小）值后，剩余n - 1个元素的序列又成一个堆
 
@@ -197,9 +441,9 @@ void MergeSort(int a[], int n) {
 
 void MergePass(int x[], int y[], int s, int n) {
     int i = 0;
-    while(i <= n - 2 * s) {
-        Merge(x, y, i, i + s - 1, i + 2 * s - 1);
-        i = i + 2 * s;
+    while(i <= n - 2s) {
+        Merge(x, y, i, i + s - 1, i + 2s - 1);
+        i = i + 2s;
     }
 }
 ```
@@ -446,14 +690,14 @@ print(r.text)
         <center>
             <h1>Yet Another Calculator</h1>
             <p>Let's play a game. Please work on this math problem, and make it in 1.5 seconds.</p>
-            <form action="" method="GET"><span id="exp">5160526 + 811146 * 44008 - 158998 = </span>
+            <form action="" method="GET"><span id="exp">5160526 + 81114644008 - 158998 = </span>
             <input name="answer" type="text" autofocus class="line_input" /><input type="submit" /></form>
         </center>
     </body>
 </html>
 ```
 
-可以得到要计算的式子为：`5160526 + 811146 * 44008 - 158998`，计算结果为`35701914696`
+可以得到要计算的式子为：`5160526 + 81114644008 - 158998`，计算结果为`35701914696`
 
 要在一个文本输入框中输入答案
 
@@ -506,9 +750,9 @@ r = requests.post('http://121.42.176.204:23331/calculator/', data=payload)
 print(r.text)
 ```
 
-输出内容为新的HTML文件源码，新的表达式变为：`7553124 + 675371 * 42361 - 198070 = `，计算结果为：`28616745985`
+输出内容为新的HTML文件源码，新的表达式变为：`7553124 + 67537142361 - 198070 = `，计算结果为：`28616745985`
 
-尝试使用相同的方法发送POST请求，得到新的表达式：`9015527 + 957316 * 79168 - 101603 =`，计算结果为：`75797707012`
+尝试使用相同的方法发送POST请求，得到新的表达式：`9015527 + 95731679168 - 101603 =`，计算结果为：`75797707012`
 
 再次使用相同的方法发送POST请求，依然得到新的表达式。也许此方法会如此循环下去，不能得到flag
 
