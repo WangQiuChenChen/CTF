@@ -1,5 +1,235 @@
 # CTF Blog
 
+## 2月24日 更新
+
+### 机试试题 Part 3(约4小时)
+
+#### Huffman编码
+
+Huffman编码根据字符出现的次数来构造平均长度最短的码字，是二叉树的一种应用
+
+压缩过程（以ABCDEABCDABCABA为例）：
+
+第一步，统计字符及其出现次数，并计算出出现概率
+
+字符|A|B|C|D|E
+:-:|:-:|:-:|:-:|:-:|:-:
+出现次数|5|4|3|2|1
+出现频率|0.33|0.27|0.2|0.13|0.07
+
+取概率最低的D、E为二叉树最高层的叶子，分别设为0、1，D+E的概率为0.2，加入到表格中，取代原来的D和E，并重新排序
+
+字符|A|B|C|D+E
+:-:|:-:|:-:|:-:|:-:
+出现频率|0.33|0.27|0.2|0.2
+
+字符|A|B|C|D|E
+:-:|:-:|:-:|:-:|:-:|:-:
+当前编码||||0|1
+
+重复上述方法，取概率最低的C和D+E为次高层叶子，分别设为0、1，C+D+E的概率为0.4，加入到表格中，取代原来的C和D+E，并重新排序
+
+字符|C+D+E|A|B
+:-:|:-:|:-:|:-:
+出现频率|0.4|0.33|0.27
+
+字符|A|B|C|D|E
+:-:|:-:|:-:|:-:|:-:|:-:
+当前编码|||0|10|11
+
+重复上述方法，取A、B为次高层叶子，分别设为0、1，A+B的概率为0.6，加入到表格中
+
+字符|A+B|C+D+E
+:-:|:-:|:-:
+出现频率|0.6|0.4
+
+字符|A|B|C|D|E
+:-:|:-:|:-:|:-:|:-:|:-:
+当前编码|0|1|0|10|11
+
+最后，将剩余的两个结点合并，设高概率的A+B为0，低概率的C+D+E为1，最终编码
+
+字符|A|B|C|D|E
+:-:|:-:|:-:|:-:|:-:|:-:
+当前编码|00|01|10|110|111
+
+将字符串转换为Huffman编码：
+
+000110110111000110110000110000100
+
+#### 保险箱类
+
+题目要求：
+
+建立一个用数字作为密码，存放一个字符串的保险箱类，它具有以下成员函数：
+
+1）一个构造函数，接受一个数字作为初始密码
+
+2）另一个构造函数，没有指定初始密码，此时初始密码默认为0，不允许使用默认参数
+
+3）一个开箱门函数，给定一个密码，如果密码正确，则保险箱开箱，否则保持状态不变
+
+4）一个锁箱门函数，没有参数，将保险箱锁定
+
+5）一个更新内容函数，在开箱的情况下，更新保险箱内存放的字符串
+
+6）一个取出内容函数，在开箱的情况下，在屏幕上输出存放的字符串
+
+7）一个更改密码函数，在开箱的情况下，更新保险箱的密码
+
+根据题目要求，建立类的框架：
+
+```cpp
+class Safe {
+  private:
+    int password;
+    string str;
+    bool is_open;
+
+  public:
+    Safe(string str);
+    Safe(int password, string str);
+    bool Open(int password);
+    void Close();
+    bool Update(string str);
+    void Show();
+    bool ChangePassword(int password);
+};
+```
+
+构造函数
+
+如果题目不要求不允许使用默认参数，构造函数可以写成
+```cpp
+Safe(int password = 0, string str) {
+    this->password = password;
+    this->str = str;
+    this->is_open = false;
+}
+```
+
+根据题意，构造函数应当重载
+```cpp
+Safe(string str) : password(0), str(str), is_open(false) {}
+Safe(int password, string str) : password(password), str(str), is_open(false) {}
+```
+
+开门函数，将实参密码与对象的密码进行比较，相同则打开，不同则关上
+```cpp
+bool Open(int password) {
+    if (password == this->password)
+        is_open = true;
+    else
+        is_open = false;
+    return is_open;
+}
+```
+
+关门函数相对简单，无论保险箱是否开启，将其关闭即可。可以将其设为内联函数
+
+```cpp
+inline void Close() {
+    is_open = false;
+}
+```
+
+更新内容与修改密码相似
+```cpp
+bool Update(string str) {
+    if (is_open)
+        this->str = str;
+    return is_open;
+}
+
+bool ChangePassword(int password) {
+    if (is_open)
+        this->password = password;
+    return is_open;
+}
+```
+
+取出内容
+```cpp
+void Show() {
+    if (is_open)
+        cout << str << endl;
+    else
+        cout << "Safe Closed.\n";
+}
+```
+
+#### 输出从2开始的前500个质数
+
+题目的关键在于质数的判断，判断从2到sqrt(n)即可，这样可以减少运算次数，提高程序性能
+
+```cpp
+bool is_prime(int n) {
+    for (int i = 2; i <= sqrt(n); i++)
+        if (n % i == 0)
+            return false;
+    return true;
+}
+```
+
+#### 顺序线性表
+
+题目要求：
+
+N个人围成一圈，1，2，3循环报数，报到3的人退出
+
+并将退出的序号一次存到数组p中，包括最后一个人的序号
+
+到最后剩余一人，输出最后留下的是第几号（最初的以1起始）及退出的顺序
+
+如N=6，输出1，3 6 4 2 5 1
+
+N=10，输出4， 3 6 9 2 7 8 5 10 4
+
+函数int fun(int n, int *p);实现上述功能，返回N个人中最后余的1人的起始序号，并将退出的序号顺序写入p指向的数组中
+
+此题是顺序线性表的应用，简易的顺序线性表的实现
+```cpp
+class Sequence {
+    private:
+        int *p;
+        int length;
+        int size;
+    public:
+        Sequence(int size) {
+            this->size = size > 0 ? size : 10;
+            p = new int[size];
+            length = 0;
+        }
+
+        bool Insert(int index, int data) {
+            if(index < 0 || index > length)
+                return false;
+            for(int i = length; i > index; --i)
+                p[i] = p[i - 1];
+            p[index] = data;
+            length++;
+            return true;
+        }
+
+        bool Delete(int index) {
+            if(index < 0 || index >= length)
+                return false;
+            for(int i = index; i < length; ++i)
+                p[i] = p[i + 1];
+            return true;
+        }
+
+        bool GetData(int index, int &data) {
+            if(index < 0 || index >= length)
+                return false;
+            data = p[index];
+            return true;
+        }
+};
+```
+
+根据题目要求，可以每次取出第3、6、9...(int)(length/3)个数，一次存到p中，直到length==1
+
 ## 2月23日 更新
 
 ### Base64 编码解码(约30分)
@@ -107,7 +337,9 @@ MD5以512位分组来处理输入的信息，且每一分组又被划分为16个
 
 填充方法：在信息的后面填充一个1和无数个0，直到满足上面的条件时才停止用0对信息的填充。在这个结果后面附加一个以64位二进制表示的填充前信息长度（单位为Bit），如果二进制表示的填充前信息长度超过64位，则取低64位。
 
-经过这两步的处理，信息的位长=N * 512+448+64=(N+1) * 512，即长度恰好是512的整数倍。这样做的原因是为满足后面处理中对信息长度的要求。
+经过这两步的处理，信息的位长=N
+512+448+64=(N+1)
+512，即长度恰好是512的整数倍。这样做的原因是为满足后面处理中对信息长度的要求。
 
 第二步：初始化变量
 
