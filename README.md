@@ -1,5 +1,248 @@
 # CTF Blog
 
+## 2月25日 更新
+
+### 机试试题 Part 4（约4小时）
+
+#### 一元二次方程
+
+题目要求，求解一元二次方程ax<sup>2</sup>+bx+c=0的解，要求考虑到所有情况
+
+题目很简单，考查的是if语句
+```c
+double delta = bb - 4ac;
+if (delta > 0) {
+    // ...
+} else if (delta == 0) {
+    // ...
+} else {
+    // ...
+}
+```
+
+#### 数字之和（递归函数）
+
+请设计一个递归函数，求出某个正整数的各位数字之和
+
+该函数的雏形为：int sumDigits(int n);
+
+例如：sumDigits(123456) = 21
+
+简单来说，递归函数就是自己调用自己。递归函数的基本形式
+
+```
+返回值 func(参数) {
+    if (递归终止条件 == true) {
+        return 
+    }
+    // 递归部分
+    func(新参数)
+}
+```
+
+就本题来说
+```
+sumDigits(123456) = 6 + sumDigits(12345)
+sumDigits(12345)  = 5 + sumDigits(1234)
+sumDigits(1234)   = 4 + sumDigits(123)
+sumDigits(123)    = 3 + sumDigits(12)
+sumDigits(12)     = 2 + sumDigits(1)
+sumDigits(1)      = 1
+```
+
+根据前几步的计算，可以得到递归函数的递归部分
+```c
+return n % 10 + sumDigits(n / 10);
+```
+
+最后一步的计算可以看作递归函数的终止条件
+
+```c
+if(n < 10)
+    return n;
+```
+
+整合起来
+```c
+int sumDigits(int n) {
+    if (n < 10)
+        return n;
+    return n % 10 + sumDigits(n / 10);
+}
+```
+
+#### 虚函数
+
+虚函数是在基类中声明为virtual，在派生类中重新定义的成员函数，实现多态性。
+
+指向基类的指针在操作它的多态类对象时，会根据不同的类对象，调用其相应的函数
+
+先实现一个简单的类的继承
+
+```cpp
+class A {
+    public:
+        void print() {
+            cout << "A\n";
+        }
+};
+
+class B : public A {
+    public:
+        void print() {
+            cout << "B\n";
+        }
+};
+
+int main() {
+    A a;
+    B b;
+    a.print();  // A
+    b.print();  // B
+    return 0;
+}
+```
+
+输出不同
+
+通过class A和class B的print()接口，可以看出这两个类因个体的差异而采用了不同的策略，但这并不是多态性行为（使用的是不同类型的指针），没有用到虚函数的功能。
+
+若在main()中加入指针
+
+```cpp
+int main() {
+    A a;
+    B b;
+    A *p1 = &a;
+    A *p2 = &b;
+    p1->print();    // A
+    p2->print();    // A
+    return 0;
+}
+```
+
+此时输出全为A。p2指向class B的对象，但没有调用class B的print()函数，解决这个问题需要使用虚函数
+
+```cpp
+class A {
+    public:
+        virtual void print() {
+            cout << "A\n";
+        }
+};
+
+class B : public A {
+    public:
+        void print() {
+            cout << "B\n";
+        }
+};
+
+int main() {
+    A a;
+    B b;
+    A *p1 = &a;
+    A *p2 = &b;
+    p1->print();    // A
+    p2->print();    // B
+    return 0;
+}
+```
+
+问题解决
+
+实例（机试试题）：
+
+题目要求（部分）：
+
+先建立一个房间类，用纯虚函数定义计算房间面积函数
+ 
+再建立一个“方形房间类”和“圆形房间类”，继承房间类，并分别对虚函数重新定义实现各自的面积计算。
+ 
+```cpp
+class Room {
+  public:
+    virtual double area() { return 0; }
+};
+
+class CircleRoom : public Room {
+  private:
+    double radius;
+    double height;
+
+  public:
+    CircleRoom(double radius = 0, double height = 0)
+        : radius(radius), height(height) {}
+    double area() { return 3.1415926 * radius * radius * height; }
+};
+
+class RectRoom : public Room {
+  private:
+    double length;
+    double width;
+    double height;
+
+  public:
+    RectRoom(double length = 0, double width = 0, double height = 0)
+        : length(length), width(width), height(height) {}
+    double area() { return length * width * height; }
+};
+```
+
+#### 顺序查找
+
+平时写的顺序查找算法
+
+```c
+int search(int a[], int n, int key) {
+    for(int i = 0; i < n; i++)
+        if(a[i] == key)
+            return i;
+    return -1;
+}
+```
+
+可以看到需要每次查看下标是否越界
+
+原始数组
+
+下标|0|1|2|3|4|5|6
+:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:
+数据|12|23|10|33|26|76|2
+
+现将数组元素整体后移一位，第下标0元素空出来
+
+下标|0|1|2|3|4|5|6|7
+:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:
+数据||12|23|10|33|26|76|2
+
+在进行查找的时候，将要查找的元素（以10为例）放到0号位
+
+下标|0|1|2|3|4|5|6|7
+:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:
+数据|*10*|12|23|10|33|26|76|2
+
+从后向前查找，此时不需要每次都确认数组是否越界
+
+```cpp
+int search(int a[], int n, int key) {
+    a[0] = key;
+    for(int i = n - 1; ; --i) 
+        if(a[i] == key)
+            return i;
+}
+```
+
+返回值为3
+
+当查找一个数组中不存在的元素（以50为例）时
+
+下标|0|1|2|3|4|5|6|7
+:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:
+数据|*50*|12|23|10|33|26|76|2
+
+循环变量i在减为0时，函数运行结束，“找到”了50，返回0
+
 ## 2月24日 更新
 
 ### 机试试题 Part 3(约4小时)
@@ -303,7 +546,7 @@ key.erase(it, key.end());
 
 题目要求：
 
-编写函数int locStr(char* str1, char* str2)实现字符串匹配的定位功能，若字符串str1中含有字符串str2，则返回字符串str2在字符串str1中的位置，否则返回-1
+编写函数int locStr(charstr1, charstr2)实现字符串匹配的定位功能，若字符串str1中含有字符串str2，则返回字符串str2在字符串str1中的位置，否则返回-1
 
 题目可以使用二层for循环实现，时间复杂度为O(mn)，m、n分别为两个字符串的长度
 
@@ -710,7 +953,7 @@ void InsertSort(int a[], int n) {
     }
 }
 
-/* 示例
+/示例
 (49) 38  65  97  76  13  27  49
 (38  49) 65  ...
 (38  49  65) 97  ...
@@ -764,7 +1007,7 @@ void BubbleSort(int a[], int n) {
 
 具有相同分数的结点，放在同一个箱子中；把箱子按顺序连起来，成为一个有序链表
 ```c++
-/* 举例
+/举例
 (A,2)->(B,4)->(C,5)->(D,4)->(E,3)
 ->(F,0)->(G,4)->(H,3)->(I,4)->(J,3)
         I
