@@ -1,5 +1,290 @@
 # CTF Blog
 
+## 2月26日 更新
+
+### SQL 注入 Part 1(约1小时)
+
+SQL注入时通过把SQL命令插入到Web表单提交或输入域名或页面请求的查询字符串，最终达到欺骗服务器执行恶意代码的SQL命令
+
+它利用现有应用程序，将恶意的SQL命令注入到后台数据库引擎执行的能力
+
+SQL常用语句
+
+1.SELECT语句，从数据库中选取数据
+
+```sql
+SELECT 列名1, 列名2, ... | *
+FROM 表名;
+```
+2.DISTINCT关键字
+
+使用DISTINCT关键字可以返回唯一不同的值
+```sql
+SELECT DISTINCT ...
+FROM ...;
+```
+
+3.WHERE
+
+WHERE子句用于提取满足指定标准的记录
+```sql
+SELECT ...
+FROM ...
+WHERE 列名 运算符 关键字;
+```
+
+常见运算符：=、<>、>、<、>=、<=、BETWEEN、LIKE、IN
+
+IN用于指定针对某个列的多个可能值
+
+4.AND和OR
+
+AND 和 OR 运算符用于基于一个以上的条件对记录进行过滤
+
+```sql
+SELECT *
+FROM _table
+AND|OR column_name operator _value;
+```
+
+5.ORDER BY
+
+用于对结果集按照一个或多个列进行排序，默认升序，若需要降序，使用 DESC 关键字
+
+```sql
+SELECT *
+FROM _table
+ORDER BY column_name, ... ASC|DESC;
+```
+
+6.INSERT INTO
+
+用于向表中插入新纪录
+
+```sql
+INSERT INTO _table [(column1, column2, ...)]
+VALUES (value1, value2, ...)
+```
+
+7.UPDATE
+
+用于更新已存在的记录，常与WHERE搭配使用，若不使用WHERE语句，会将所有的记录更新
+
+```sql
+UPDATE _table
+SET column1 = value1, column2 = value2, ...
+WHERE column = value;
+```
+
+例如
+```sql
+UPDATE Student
+SET name='Zhang San'
+WHERE id='201401001';
+```
+
+8.DELETE
+
+用于删除表中的行，与UPDATE相同，需要和WHERE语句配合使用，若不使用WHERE语句，将会删除所有记录
+
+```sql
+DELETE FROM _table
+WHERE column = value;
+```
+
+### 机试试题 Part 5（约3小时）
+
+#### STL Vector
+
+Vector可以理解为变长数组，与数据结构中的顺序线性表功能相近
+
+Vector在访问元素、末尾添加和删除元素相对高效；在其他位置插入、删除元素效率低
+
+常见用法：
+```cpp
+#include <vector>
+using namespace std;
+
+// 声明及初始化
+vector<int> v;
+vector<int> v(5);       // 初始大小5
+vector<int> v(10, 1);   // 初始大小10，所有元素1
+vector<int> t(v.begin(), v.end());      // 用v初始化t
+vector<int> t(v.begin(), v.begin() + 3);
+int a[5];
+vector<int> v(a, a + 5);    // 用数组初始化v
+
+// 容量
+v.size();       // 向量大小
+v.capacity();   // 真实大小
+v.empty();      // 判断是否为空
+
+// 修改
+v.push_back(type_t value);  // 尾部添加元素
+v.pop_back();               // 尾部删除元素
+v.insert();     // 任意位置插入
+v.erase();      // 任意位置删除
+v.clear();      // 清空
+
+// 迭代器
+v.begin();      // 第一个元素
+v.end();        // 最后一个元素的下一个
+
+// 元素访问
+v[1];
+v.at(1);        // 有越界检查
+v.front();
+v.back();
+
+// 遍历
+vector<int>::iterator it;
+for(it = v.begin(); it < v.end(); it++)
+    cout << *it << endl;
+
+// 逆转
+#include <algorithm>
+reverse(v.begin(), v.end());
+
+// 排序
+sort(v.begin(), v.end());
+bool comp(cosnt int &a, const int &b) {
+    return a > b;
+}
+sort(v.begin(), v.end(), comp);
+```
+
+#### STL List
+
+List为数据结构中的链表，STL List的实现方式是双向链表
+
+初始化、容量、修改、迭代器、元素访问、遍历、逆转与Vector类似
+
+```cpp
+#include <list>
+using namespace std;
+
+// 链表交换
+a.swap(b);
+swap(a, b); //都可以完成a链表和b链表的交换
+
+// 融合
+a.merge(b);
+a.merge(b, greater<int>()); // b清空，a中元素包含原来a和b的元素
+```
+
+#### STL Stack/Queue
+
+Stack为数据结构中的栈，具有后进先出的特点（LIFO）
+
+```cpp
+#include <stack>
+using namespace std;
+
+// 初始化
+stack<int> s;
+
+// 入栈
+s.push(1);
+
+// 出栈
+s.pop();
+
+// 访问栈顶元素
+s.top();
+
+// 判断栈空
+s.empty();
+
+// 元素个数
+s.size();
+```
+
+Queue为数据结构中的队列，具有先进先出的特点（FIFO）
+
+```cpp
+#include <queue>
+using namespace std;
+
+queue<int> q;
+
+// 入队列
+q.push(1);
+
+// 出队列
+q.pop();
+
+// 访问队首元素
+q.front();
+
+// 访问队尾元素
+q.back();
+
+// 判断队列是否为空
+q.empty();
+
+// 元素个数
+q.size();
+```
+
+#### STL priority_queue
+
+优先队列，根据队列中元素的优先权顺序出队列，默认大者优先
+
+```cpp
+#include <queue>
+using namespace std;
+
+priority_queue<int> q1;
+priority_queue<pair<int, int> > q2;
+priority_queue<int, vector<int>, greater<int> > q3; // 默认为less<int>
+```
+
+其他的操作与Queue相同
+
+#### STL Set
+
+set集合容器实现了红黑树的平衡二叉检索树的的数据结构，在插入元素时，它会自动调整二叉树的排列，把该元素放到适当的位置，以确保每个子树根节点的键值大于左子树所有节点的键值，而小于右子树所有节点的键值；
+
+确保根节点的左子树的高度与有字数的高度相等，这样，二叉树的高度最小，从而检索速度最快，检索使用中序遍历算法。
+
+不会重复插入相同键值的元素，而采取忽略处理。
+
+#### 5种容器比较
+
+如果容器中的数据需要随机访问，vector比list好
+
+如果需要经常插入和删除数据，list比vector好
+
+如果既要随机存取，又要关心两端数据的插入和删除，选择deque
+
+set与其他容器的区别在于不存放重复值，以存放的值排序
+
+#### 其他类型与string类型的转换
+
+C++不能直接把int等转换成string 类型，因此需要用sstring 中的字符串输出流来写一个转换string 类型的函数
+
+```cpp
+#include <iostream>
+#include <string>
+#include <sstream>
+using namespace std;
+
+template <class T>
+string toString(const T &t) {
+    ostringstream os;
+    os << t;
+    return os.str();
+}
+
+template <class T>
+T fromString(const string &s) {
+    istringstream is(s);
+    T temp;
+    is >> temp;
+    return temp;
+}
+```
+
 ## 2月25日 更新
 
 ### 机试试题 Part 4（约4小时）
@@ -10,7 +295,7 @@
 
 题目很简单，考查的是if语句
 ```c
-double delta = bb - 4ac;
+double delta = b * b - 4 * a * c;
 if (delta > 0) {
     // ...
 } else if (delta == 0) {
