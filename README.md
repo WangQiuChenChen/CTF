@@ -1,5 +1,152 @@
 # CTF Blog
 
+## 2月28日 更新
+
+### STL String 应用：VSCode调用WSL编译运行单文件（约2小时）
+
+VSCode是一个代码编译器，支持多种语言，编译运行单一文件不是很方便，可以通过插件Launcher开启CMD窗口，调用第三方程序执行一些命令，这里借用这个插件实现调用WSL编译运行单个文件
+
+1.Windows调用WSL运行Linux程序的命令的方法
+
+```
+bash -c "linux command"
+如：
+bash -c "gcc a.cpp -o a.out"
+```
+
+2.现需要使用C++编写一个调用WSL编译运行单文件的程序，程序使用方法
+
+```cmd
+bashrun C:\Project\Project1\main.cpp
+```
+
+所以需要使用argc和argv[]
+
+```c
+int main(int argc, char **argv) {
+    if (argc == 2) {
+        // ...
+    }
+    return 0;
+}
+```
+
+3.对参数argv[1]的操作：将Windows文件路径转换为Linux格式
+
+```
+C:\Project\Project1\main.cpp
+==>
+/mnt/c/Project/Project1/main.cpp
+```
+
+3.1 大写盘符转小写，使用string.h里的tolower()函数
+```c
+path[0] = tolower(path[0]);
+```
+
+3.2 去掉":"，使用replace()函数，与find()函数进行结合
+```cpp
+path.replace(path.find(":"), 1, "");
+```
+
+3.3 将所有"\"换为"/"
+
+string的replace函数一次只能替换一个匹配字符，文件路径中有多个匹配字符，写了一个函数用于替换所有匹配字符
+
+上面的替换方法中没有对find()函数的返回值进行检测
+
+```cpp
+void replace_all(string &str, const string &from, const string &to) {
+    string::size_type pos(0);
+    while (true) {
+        if ((pos = str.find(from)) != string::npos)
+            str.replace(pos, from.length(), to);
+        else
+            break;
+    }
+}
+```
+
+3.4 在路径前面加上"/mnt/"
+
+WSL将Windows的磁盘挂载在/mnt/目录下
+
+```cpp
+path = "/mnt/" + path;
+```
+
+4.提取文件扩展名
+
+从
+```
+/mnt/c/Project/Project1/main.cpp
+```
+中提取到"cpp"，只需找到最后一个"."后面的所有字符即可，使用substr()函数
+
+```cpp
+void split_name(const string &filename, string &basename, string &extname) {
+    int p = 0, i;
+    for (i = 0; i < filename.size(); i++)
+        if (filename[i] == '.')
+            p = i;
+    string::size_type pos(p);
+    basename = filename.substr(0, pos);
+    extname = filename.substr(pos);
+}
+```
+
+5.根据扩展名类型选择编译运行命令
+
+```cmd
+gcc -std=c99 -Wall %FILENAME% -o "%BASENAME%.out" && "%BASENAME%.out"
+
+g++ -std=c++11 -Wall %FILENAME% -o "%BASENAME%.exe" && "%BASENAME%.exe"
+
+javac %FILENAME% && java %BASENAME%
+
+py %FILENAME%
+```
+
+需要在这些编译运行命令前面加上`bash -c`，并将这些命令用双引号括起来
+
+### So you want to work in security? （约90分）
+
+你是否想从事安全工作？
+
+作者Ivan Fratric是一名引用程序安全人员，是Google Project Zero的成员。
+
+安全领域的一些方向：漏洞研究、安全审查、错误狩猎、黑客攻击、安全开发、恶意软件分析、基础设施安全等。
+
+从事安全工作需要自己做点东西。很多人在从事安全工作之前将其当成一种业余爱好。
+
+现在从事安全领域比10年前更困难。随着时间的推移，安全性有了很大的提高，但相关的领域对安全人员的要求更加高了。
+
+现在学习资源比以前多得多，但没有人会手把手领着你去学习，你需要自己去学习。如果遵循预先设定的课程，不会在安全方面走太远。
+
+在获得正确的学习资源之前需要问两个问题：
+
+1.我感兴趣的软件/硬件如何工作？基于什么技术？有无可阅读源码、教程、图书？
+
+2.有人设法打破了我想要打破的软件/硬件吗？他们发布了教程、漏洞、介绍吗？我明白他们做了什么吗？
+
+这两个问题告诉我们，我们需要在技术上精通他人制作的真实硬件或软件的工作方式。
+
+遇到不了解的事情时，不要放弃。特别是在开始阅读新的资源时。要善于向别人提问。
+
+多使用社交网络（如Twitter），很多安全社区通过twitter分享新闻。
+
+玩CTF时一个很好的学习方式，CTF可以增长自己的经验。
+
+在真实世界中，不要害怕失败，虽然这会经常发生。
+
+漏洞研究时的大部分尝试不起作用，但需要接受，不要阻止自己的进一步尝试。这种情况会发生在所有人身上。如果失败，继续之前需要找到失败的原因。
+
+你比自己想象的更聪明。比如说你认为自己的想法开发人员一定会想到，但事实上有时候自己的想法开发人员想不到。
+
+很多公司为那些在其产品中发现缺陷的研究人员提供奖励。
+
+安全研究人员生活不会像想象中的光彩照人，熬夜、长时间坐在电脑前将会是家常便饭。
+
 ## 2月27日 更新
 
 ### SQL注入 Part 2(约90分)
