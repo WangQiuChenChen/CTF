@@ -1,5 +1,7 @@
 # CTF Blog
 
+## 由于不再从事安全方面的学习，此repo停止更新
+
 # 2月28日 更新
 
 ## STL String 应用：VSCode调用WSL编译运行单文件（约2小时）
